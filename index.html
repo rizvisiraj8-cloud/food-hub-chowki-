@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#991b1b">
+<title>Food Hub Chowki Pro - Professional</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--red:#991b1b;--orange:#ea580c;--green:#15803d;--cream:#fff7ed;--text:#292524;--muted:#78716c;--blue:#1d4ed8}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--cream);color:var(--text);line-height:1.6;direction:rtl;text-align:right}
+button,input,select{font:inherit}button{cursor:pointer}
+
+.hero{background:linear-gradient(135deg,#450a0a,#991b1b,#ea580c);color:#fff;padding:35px 16px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.15)}
+.hero h1{font-size:28px;margin:0;font-weight:900;letter-spacing:0;direction:ltr;display:inline-block}
+.hero p{margin:8px 0;opacity:0.95;font-size:15px;direction:rtl}
+.location-tag{display:inline-block;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);padding:6px 16px;border-radius:30px;margin-top:10px;font-size:13px;direction:rtl}
+
+.container{max-width:900px;margin:auto;padding:16px}
+.card{background:#fff;margin:16px 0;padding:20px;border-radius:20px;box-shadow:0 8px 30px rgba(124,45,18,0.06);border:1px solid #ffedd5;transition:all 0.3s ease}
+.card h3{margin:0 0 16px 0;color:#450a0a;font-size:18px;display:flex;align-items:center;gap:8px}
+input,select{width:100%;padding:13px 14px;margin:8px 0;border:1px solid #e7e5e4;border-radius:12px;background:#fafaf9;outline:none;text-align:right}
+input:focus,select:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 3px rgba(234,88,12,0.1)}
+.btn{width:100%;padding:13px;margin:8px 0;border:0;border-radius:12px;background:var(--orange);color:#fff;font-weight:800}
+.btn.blue{background:var(--blue)}.btn.green{background:var(--green)}.btn.red{background:#dc2626}.btn.dark{background:#292524}.btn:disabled{opacity:.6}
+#mainApp{display:none}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.stat{padding:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;text-align:center}
+.stat strong{display:block;font-size:22px;color:var(--red);margin-bottom:2px}
+.stat span{font-size:12px;color:var(--muted);font-weight:600}
+.food-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.food-card{background:#fff;border:1px solid #fed7aa;border-radius:14px;overflow:hidden}
+.food-card img{width:100%;height:110px;object-fit:cover;display:block}
+.food-info{padding:10px}.food-info b{font-size:14px;display:block}.food-info p{font-size:11px;color:var(--muted);margin:4px 0}
+.menu-item{display:flex;align-items:center;gap:12px;padding:12px;margin:10px 0;border-radius:14px;background:#fff7ed;border-right:5px solid var(--orange)}
+.menu-info{flex:1;min-width:0}.menu-info b{font-size:15px}
+.price{font-weight:900;color:var(--red);margin-top:4px}
+.muted{font-size:12px;color:var(--muted)}
+.loc-box{padding:14px;text-align:center;background:#eff6ff;border:1px dashed #60a5fa;border-radius:14px;margin:8px 0}
+.order-item{padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-right:6px solid var(--green);border-radius:14px;margin:12px 0}
+.order-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.pending{background:#fef3c7;color:#d97706}
+.badge.preparing{background:#e0f2fe;color:#0284c7}
+.badge.delivering{background:#ede9fe;color:#7c3aed}
+.badge.completed{background:#dcfce7;color:#15803d}
+.badge.cancelled{background:#fee2e2;color:#dc2626}
+.empty{text-align:center;padding:24px;color:var(--muted);font-style:italic}
+.footer{text-align:center;padding:24px;font-size:12px;color:var(--muted)}
+.row{display:flex;gap:10px}
+.row > * {flex:1}
+@media(min-width:600px){.food-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}.container{padding:24px}}
+</style>
+</head>
+<body>
+
+<div id="loginPage">
+<header class="hero">
+  <h1>Food Hub Chowki Pro 🍛</h1>
+  <p>مزے دار کھانے، بہترین ذائقہ - پروفیشنل مینجمنٹ سسٹم</p>
+  <div class="location-tag">📍 حب، چوکی، بلوچستان، پاکستان</div>
+</header>
+
+<main class="container">
+<section class="card" style="max-width:450px; margin: 30px auto;">
+<h3>🔑 مالک کا اکاؤنٹ</h3>
+<input id="email" type="email" autocomplete="email" placeholder="ای میل ایڈریس">
+<input id="password" type="password" autocomplete="current-password" placeholder="کم از کم 6 حروف کا پاس ورڈ">
+<button class="btn" onclick="login()">لاگ اِن کریں</button>
+<button class="btn blue" onclick="signup()">نیا اکاؤنٹ بنائیں</button>
+<p style="text-align:center; margin-top:12px; font-size:12px; color:var(--muted);">ہر ریسٹورنٹ یا فوڈ پوائنٹ کا الگ اور محفوظ اکاؤنٹ۔</p>
+</section>
+</main>
+</div>
+
+<div id="mainApp">
+<header class="hero">
+  <h1>Food Hub Chowki Pro 🍛</h1>
+  <p>بریانی • چکن • کڑاہی • فاسٹ فوڈ • دودھ پتی</p>
+  <div class="location-tag">📍 حب، چوکی، بلوچستان، پاکستان</div>
+  <p id="userBadge" style="margin-top:10px; font-size:13px; opacity:0.9;"></p>
+</header>
+
+<main class="container">
+<section class="card">
+  <h3>📊 کاروبار کا خلاصہ</h3>
+  <div class="stats">
+    <div class="stat"><strong id="productCount">0</strong><span>مینو آئٹمز</span></div>
+    <div class="stat"><strong id="orderCount">0</strong><span>کل آرڈرز</span></div>
+    <div class="stat"><strong id="todayOrders">0</strong><span>آج کے آرڈرز</span></div>
+    <div class="stat"><strong id="todaySales">Rs. 0</strong><span>آج کی فروخت</span></div>
+  </div>
+  <button class="btn blue" style="margin-top:14px;" onclick="refreshAll()">🔄 ڈیٹا ریفریش کریں</button>
+</section>
+
+<section class="card">
+  <h3>⭐ اسپیشل ڈشز</h3>
+  <div class="food-grid">
+    <div class="food-card"><img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300" alt="بریانی"><div class="food-info"><b>🍛 اسپیشل بریانی</b><p>خوشبودار مصالحوں کے ساتھ</p></div></div>
+    <div class="food-card"><img src="https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=300" alt="کڑاہی"><div class="food-info"><b>🍗 چکن کڑاہی</b><p>تازہ اور مزیدار</p></div></div>
+    <div class="food-card"><img src="https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=300" alt="برگر"><div class="food-info"><b>🍔 اسپیشل برگر</b><p>فاسٹ فوڈ</p></div></div>
+    <div class="food-card"><img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300" alt="پیزا"><div class="food-info"><b>🍕 پیزا</b><p>چیز اور ٹاپنگز</p></div></div>
+    <div class="food-card"><img src="https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?w=300" alt="چائے"><div class="food-info"><b>☕ دودھ پتی</b><p>گرما گرم چائے</p></div></div>
+    <div class="food-card"><img src="https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=300" alt="چکن"><div class="food-info"><b>🍗 اسپیشل چکن</b><p>مزیدار پکوان</p></div></div>
+  </div>
+</section>
+
+<section class="card">
+  <h3>📍 ڈیلیوری لوکیشن و نقشہ</h3>
+  <div id="locStatus" class="loc-box">اپنی موجودہ لوکیشن حاصل کرنے کے لیے نیچے بٹن دبائیں۔</div>
+  <div class="row">
+    <button class="btn blue" onclick="getLocation()">📍 موجودہ لوکیشن حاصل کریں</button>
+    <button class="btn dark" onclick="openChowkiMap()">🗺️ چوکی نقشے پر دیکھیں</button>
+  </div>
+</section>
+
+<section class="card">
+  <h3>➕ مینو میں نیا کھانا شامل کریں</h3>
+  <input id="p_name" maxlength="100" placeholder="کھانے کا نام (مثلاً: چکن بریانی)">
+  <select id="p_cat">
+    <option value="مین کورس">🍛 مین کورس (دال، بریانی، کڑاہی)</option>
+    <option value="فاسٹ فوڈ">🍔 فاسٹ فوڈ (برگر، رول، پیزا)</option>
+    <option value="مشروبات">☕ مشروبات اور چائے</option>
+    <option value="اسنیکس">🍟 اسنیکس اور دیگر</option>
+  </select>
+  <div class="row">
+    <input id="p_price" type="number" min="0.01" step="0.01" placeholder="قیمت (روپے)">
+    <input id="p_stock" type="number" min="0" step="1" placeholder="دستیاب مقدار (Stock)">
+  </div>
+  <button class="btn" id="addProductBtn" onclick="addProduct()">🍽️ مینو میں شامل کریں</button>
+</section>
+
+<section class="card">
+  <h3>📋 ہمارا مینو</h3>
+  <input id="searchProduct" placeholder="🔍 مینو میں کھانا تلاش کریں..." oninput="renderProducts()">
+  <div id="products_list" class="empty">مینو لوڈ ہو رہا ہے...</div>
+</section>
+
+<section class="card">
+  <h3>🛵 نیا آرڈر درج کریں</h3>
+  <div class="row">
+    <input id="c_name" maxlength="100" placeholder="کسٹمر کا نام">
+    <input id="c_phone" type="tel" maxlength="25" placeholder="موبائل نمبر">
+  </div>
+  <select id="s_product" onchange="updateOrderPrice()"><option value="">مینو سے کھانا منتخب کریں</option></select>
+  <div class="row">
+    <input id="s_qty" type="number" min="1" step="1" value="1" placeholder="تعداد" oninput="updateOrderPrice()">
+    <div class="loc-box" style="margin:8px 0; padding:12px;">کل رقم: <strong id="orderTotal">Rs. 0</strong></div>
+  </div>
+  <input id="s_address" maxlength="300" placeholder="مکمل ڈیلیوری ایڈریس (محلہ، گلی نمبر)">
+  <button class="btn green" id="orderBtn" onclick="addSale()">✅ آرڈر کنفرم کریں</button>
+</section>
+
+<section class="card">
+  <h3>🧾 حالیہ آرڈرز اور اسٹیٹس</h3>
+  <div id="sales_list" class="empty">آرڈرز لوڈ ہو رہے ہیں...</div>
+</section>
+
+<section class="card">
+  <h3>💸 دکان کے اخراجات (Expense Tracking)</h3>
+  <input id="exp_title" placeholder="خرچے کا نام (مثلاً: سبزی خرید، بجلی بل)">
+  <input id="exp_amount" type="number" min="1" placeholder="رقم (روپے میں)">
+  <button class="btn red" onclick="addExpense()">📉 خرچہ درج کریں</button>
+  <div id="expenses_list" class="empty" style="margin-top:10px;">اخراجات کا ریکارڈ نہیں ہے۔</div>
+</section>
+
+<button class="btn dark" onclick="logout()" style="margin-top:20px;">🚪 لاگ آؤت کریں</button>
+</main>
+<footer class="footer">Food Hub Chowki Pro • حب، چوکی، بلوچستان، پاکستان</footer>
+</div>
+
+<script>
+"use strict";
+const SUPABASE_URL="https://lmahlaryzsnbpqdhzygg.supabase.co";
+const SUPABASE_KEY="sb_publishable_bY0BFbkHBg4ELc_QoLUtxw_VC5ndMXP";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let currentUser=null, currentLocation=null, productsCache=[], salesCache=[], expensesCache=[], busy=false;
+
+const foodImages=[
+"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300",
+"https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=300",
+"https://images.unsplash.com/photo-1568909344668-6f14a07b56a0?w=300",
+"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300",
+"https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?w=300",
+"https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=300"];
+
+function el(id){return document.getElementById(id)}
+function escapeHTML(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function money(v){return "Rs. "+Number(v||0).toLocaleString("en-PK",{maximumFractionDigits:2})}
+
+function showLogin(){el("loginPage").style.display="block";el("mainApp").style.display="none"}
+function showApp(){el("loginPage").style.display="none";el("mainApp").style.display="block";el("userBadge").textContent="لاگ ان اکاؤنٹ: "+(currentUser?.email||"");refreshAll()}
+
+async function init(){
+  const {data,error}=await supabaseClient.auth.getSession();
+  if(error){alert("Supabase کنکشن کی خرابی: "+error.message);return}
+  if(data.session){currentUser=data.session.user;showApp()}else{showLogin()}
+  supabaseClient.auth.onAuthStateChange((_event,session)=>{
+    if(session){currentUser=session.user;showApp()}else{currentUser=null;showLogin()}
+  });
+}
+
+async function signup(){
+  const email=el("email").value.trim(), password=el("password").value;
+  if(!email||password.length<6){alert("درست ای میل اور کم از کم 6 حروف کا پاس ورڈ درج کریں۔");return}
+  const {data,error}=await supabaseClient.auth.signUp({email,password});
+  if(error){alert("اکاؤنٹ نہیں بن سکا: "+error.message);return}
+  if(data.session){currentUser=data.user;showApp()}else{alert("رجسٹریشن مکمل! اگر ضرورت ہو تو ای میل تصدیق کرکے لاگ ان کریں۔");}
+}
+
+async function login(){
+  const email=el("email").value.trim(), password=el("password").value;
+  if(!email||!password){alert("ای میل اور پاس ورڈ درج کریں۔");return}
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(error){alert("لاگ ان ناکام: "+error.message);return}
+  currentUser=data.user;showApp();
+}
+
+async function logout(){
+  await supabaseClient.auth.signOut();
+  currentUser=null; productsCache=[]; salesCache=[]; expensesCache=[];
+  showLogin();
+}
+
+async function refreshAll(){
+  if(!currentUser)return;
+  await loadProducts();
+  await loadSales();
+  await loadExpenses();
+}
+
+async function loadProducts(){
+  el("products_list").textContent="مینو لوڈ ہو رہا ہے...";
+  const {data,error}=await supabaseClient.from("products").select("id,name,price,stock_quantity,owner_id").eq("owner_id",currentUser.id).order("id",{ascending:false});
+  if(error){el("products_list").textContent="مینو لوڈ نہیں ہوا: "+error.message;return}
+  productsCache=data||[];
+  renderProducts();
+  updateProductSelect();
+  updateStats();
+}
+
+function renderProducts(){
+  const query=el("searchProduct").value.trim().toLowerCase();
+  const filtered=productsCache.filter(p=>String(p.name||"").toLowerCase().includes(query));
+  if(!filtered.length){el("products_list").innerHTML='<div class="empty">کوئی مینو آئٹم موجود نہیں۔</div>';return}
+  el("products_list").innerHTML=filtered.map((p,i)=>`
+    <div class="menu-item">
+      <img src="${foodImages[i%foodImages.length]}" alt="کھانا" width="65" height="65" style="width:65px;height:65px;object-fit:cover;border-radius:10px">
+      <div class="menu-info">
+        <b>${escapeHTML(p.name)}</b>
+        <div class="price">${money(p.price)}</div>
+        <div class="muted">باقی مقدار (Stock): ${Number(p.stock_quantity||0)}</div>
+      </div>
+      <button class="btn red" style="width:auto; padding:6px 12px; font-size:12px;" onclick="deleteProduct(${p.id})">حذف</button>
+    </div>`).join("");
+}
+
+async function addProduct(){
+  if(busy||!currentUser)return;
+  const name=el("p_name").value.trim(), price=Number(el("p_price").value), stock=Number(el("p_stock").value);
+  if(!name){alert("کھانے کا نام درج کریں۔");return}
+  if(!Number.isFinite(price)||price<=0){alert("درست قیمت درج کریں۔");return}
+  if(!Number.isInteger(stock)||stock<0){alert("دستیاب مقدار درست درج کریں۔");return}
+  
+  busy=true; el("addProductBtn").disabled=true;
+  try{
+    const {error}=await supabaseClient.from("products").insert([{name,price,stock_quantity:stock,owner_id:currentUser.id}]);
+    if(error){alert("خرابی: "+error.message);return}
+    el("p_name").value=""; el("p_price").value=""; el("p_stock").value="";
+    alert("کھانا کامیابی سے مینو میں شامل ہوگیا۔");
+    await loadProducts();
+  }finally{busy=false; el("addProductBtn").disabled=false}
+}
+
+async function deleteProduct(id){
+  if(!confirm("کیا آپ واقعی اس مینو آئٹم کو حذف کرنا چاہتے ہیں؟"))return;
+  const {error}=await supabaseClient.from("products").delete().eq("id",id);
+  if(error){alert("حذف نہیں ہو سکا: "+error.message);return}
+  await loadProducts();
+}
+
+function updateProductSelect(){
+  const s=el("s_product"), prev=s.value;
+  s.innerHTML='<option value="">مینو سے کھانا منتخب کریں</option>';
+  productsCache.forEach(p=>{
+    const o=document.createElement("option");
+    o.value=String(p.id);
+    o.textContent=`${p.name} — ${money(p.price)}`;
+    s.appendChild(o);
+  });
+  if(productsCache.some(p=>String(p.id)===prev))s.value=prev;
+  updateOrderPrice();
+}
+
+function updateOrderPrice(){
+  const p=productsCache.find(x=>String(x.id)===el("s_product").value);
+  const q=Number(el("s_qty").value);
+  el("orderTotal").textContent=money(p&&Number.isInteger(q)&&q>0?Number(p.price)*q:0);
+}
+
+function getLocation(){
+  const box=el("locStatus");
+  if(!navigator.geolocation){box.textContent="براؤزر لوکیشن کو سپورٹ نہیں کرتا۔";return}
+  box.textContent="جی پی ایس لوکیشن حاصل کی جا رہی ہے...";
+  navigator.geolocation.getCurrentPosition(pos=>{
+    currentLocation={lat:pos.coords.latitude,lng:pos.coords.longitude};
+    box.innerHTML=`<b>لوکیشن مل گئی!</b><p>${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}</p><a target="_blank" href="https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lng}">گوگل میپس پر دیکھیں</a>`;
+  },err=>box.textContent="لوکیشن نہیں مل سکی: "+err.message,{enableHighAccuracy:true,timeout:15000});
+}
+
+function openChowkiMap(){
+  window.open("https://www.google.com/maps/search/?api=1&query=Chowki+Balochistan+Pakistan","_blank");
+}
+
+async function addSale(){
+  if(busy||!currentUser)return;
+  const name=el("c_name").value.trim(), phone=el("c_phone").value.trim(), address=el("s_address").value.trim();
+  const product=productsCache.find(p=>String(p.id)===el("s_product").value), qty=Number(el("s_qty").value);
+  
+  if(!name||!phone||!address){alert("کسٹمر کا نام، فون نمبر اور مکمل پتہ درج کریں۔");return}
+  if(!product){alert("مینو سے کھانا منتخب کریں۔");return}
+  if(!Number.isInteger(qty)||qty<1){alert("تعداد درست درج کریں۔");return}
+  
+  const total=Number(product.price)*qty;
+  const details={customer_name:name, phone, product_id:product.id, product_name:product.name, quantity:qty, address, location:currentLocation, total, status:"pending", area:"Chowki, Balochistan"};
+  
+  busy=true; el("orderBtn").disabled=true;
+  try{
+    const {error}=await supabaseClient.from("sales").insert([{owner_id:currentUser.id, total_amount:total, notes:"CHOWKI_ORDER_PRO "+JSON.stringify(details)}]);
+    if(error){alert("آرڈر محفوظ نہیں ہوا: "+error.message);return}
+    el("c_name").value=""; el("c_phone").value=""; el("s_address").value=""; el("s_qty").value="1"; el("s_product").value="";
+    updateOrderPrice();
+    alert("آرڈر کامیابی سے درج ہو گیا!");
+    await loadSales();
+  }finally{busy=false; el("orderBtn").disabled=false}
+}
+
+async function loadSales(){
+  el("sales_list").textContent="آرڈرز لوڈ ہو رہے ہیں...";
+  const {data,error}=await supabaseClient.from("sales").select("id,total_amount,notes,created_at").eq("owner_id",currentUser.id).order("id",{ascending:false}).limit(40);
+  if(error){el("sales_list").textContent="آرڈرز لوڈ نہیں ہوئے: "+error.message;return}
+  salesCache=data||[];
+  
+  if(!salesCache.length){el("sales_list").innerHTML='<div class="empty">ابھی کوئی آرڈر موجود نہیں۔</div>';updateStats();return}
+  
+  el("sales_list").innerHTML=salesCache.map(s=>{
+    let raw=String(s.notes||"");
+    let d=null;
+    if(raw.startsWith("CHOWKI_ORDER_PRO ")){
+      try{d=JSON.parse(raw.slice(17))}catch(e){}
+    }
+    if(!d){
+      return `<div class="order-item"><b>پرانا آرڈر</b><p>${escapeHTML(raw)}</p><b>${money(s.total_amount)}</b></div>`;
+    }
+    
+    const statusMap={
+      pending:{text:"🟡 پینڈنگ (نیا آرڈر)", cls:"pending"},
+      preparing:{text:"🔵 تیار ہو رہا ہے", cls:"preparing"},
+      delivering:{text:"🟣 ڈلیوری جاری ہے", cls:"delivering"},
+      completed:{text:"🟢 مکمل شدہ", cls:"completed"},
+      cancelled:{text:"🔴 منسوخ شدہ", cls:"cancelled"}
+    };
+    const st=statusMap[d.status]||statusMap.pending;
+    
+    return `
+      <div class="order-item">
+        <div class="order-header">
+          <b>🛵 ${escapeHTML(d.customer_name)}</b>
+          <span class="badge ${st.cls}">${st.text}</span>
+        </div>
+        <p><b>کھانا:</b> ${escapeHTML(d.product_name)} × ${Number(d.quantity)}</p>
+        <p><b>فون نمبر:</b> <a href="tel:${escapeHTML(d.phone)}">${escapeHTML(d.phone)}</a></p>
+        <p><b>پتہ:</b> ${escapeHTML(d.address)}</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px;">
+          <b style="color:var(--red); font-size:16px;">${money(d.total)}</b>
+          <div>
+            <select style="padding:6px; font-size:12px; width:auto; display:inline-block;" onchange="updateOrderStatus(${s.id}, this.value)">
+              <option value="pe
